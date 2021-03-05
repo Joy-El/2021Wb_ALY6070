@@ -1,0 +1,87 @@
+---
+title: "Data Cleanup"
+author: "Joy-El Talbot"
+date: "2/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data pre-processing
+
+Here, I load and create some summary statistics about the global.health data to let me reasonably reduce the dataset for the ALY6070 course.
+
+```{r load_data}
+setwd("~/Roux/2021Wb_ALY6070") # UPDATE for your working directory
+covid19 <- read.csv("data/verified_globaldothealth_02-28-2021.csv", row.names=NULL)
+```
+
+### Summary statistics
+
+A combination of summary() results, queries for unique values in each field, and counts of rows with a blank value were used to build a summary of the data contents for each column. These full results can be found in the modified data_dictionary file.
+```{r summary_stats}
+summary(covid19)
+
+# example code for viewing unique values; this step was skipped if the summary reported all records as NAs
+unique(covid19$events.outcome.value)
+
+# example code to count number of rows with empty string values
+sum(covid19$events.outcome.value == "")  # note that TRUE is coded as 1 and FALSE as 0
+```
+
+### Reduce table size by variable
+
+Exclusion criteria:
+1. All fields providing no distinguishing information (eg. all entries are NA)
+2. Meta-data referencing other sources (eg. caseReference.additionalSources)
+3. Meta-data with limited presence (eg. revisionMetadata.*)
+4. Variable formatting fields with similar data elsewhere (eg. location.name)
+
+```{r reduce_table_by_variable}
+# fields to keep; see data_dictionary for details about all fields
+keep = c("X_id", 
+         "caseReference.sourceId",
+         "caseReference.sourceUrl",
+         "caseReference.verificationStatus",
+         "demographics.ageRange.end",
+         "demographics.ageRange.start",
+         "demographics.ethnicity",
+         "demographics.gender",
+         "events.confirmed.date",
+         "events.hospitalAdmission.date",
+         "events.hospitalAdmission.value",
+         "events.onsetSymptoms.date",
+         "events.outcome.date",
+         "events.outcome.value",
+         "location.administrativeAreaLevel1",
+         "location.administrativeAreaLevel2",
+         "location.administrativeAreaLevel3",
+         "location.country",
+         "location.geoResolution",
+         "location.geometry.latitude",
+         "location.geometry.longitude",
+         #"notes",
+         "symptoms.status",
+         "symptoms.values"
+         )
+
+covid19_new <- covid19[,keep]
+# keeping notes separately to reduce file size
+covid19_notes <- covid19[covid19$notes != "",c("X_id", "notes")] 
+
+rm(covid19)
+
+# export new data file
+write.csv(covid19_new,
+          file="data/reduced_globaldothealth_02-28-2021.csv",
+          quote=TRUE,
+          row.names=FALSE,
+          col.names=TRUE)
+write.csv(covid19_notes,
+          file="data/notes_globaldothealth_02-28-2021.csv",
+          quote=TRUE,
+          row.names=FALSE,
+          col.names=TRUE)
+```
