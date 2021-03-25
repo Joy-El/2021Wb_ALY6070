@@ -2,3 +2,4 @@
 *.Rproj
 *globaldothealth*.csv
 gh*.tar.gz
+.Rhistory
