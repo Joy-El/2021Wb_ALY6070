@@ -25,7 +25,7 @@ world_map$region[world_map$region == "UK"] <- "United Kingdom" # to match covid 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
     output$date <- renderText({
-        paste("Showing data from ", 
+        paste("Data filtered to Showing data from ", 
               as.character(input$snapshot.date - 28), 
               " to ", 
               as.character(input$snapshot.date + 28))
@@ -55,8 +55,7 @@ shinyServer(function(input, output) {
             dplyr::summarize(count = n()) %>%
             group_by() %>%
             dplyr::summarise(count = n())
-        paste("From", input$snapshot.date -3, "to", input$snapshot.date +3, 
-              "reported across", countries$count, "countries")
+        paste("New Cases reported across ", countries$count, "countries")
     })
      
     # ******************************************************************************
