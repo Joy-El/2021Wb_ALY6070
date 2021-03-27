@@ -11,7 +11,7 @@ shinyUI(fluidPage(
 
     # Application title
     titlePanel(div(HTML("<h1>Covid-19 Rates in Snapshot</h1>
-                        <p><h4><em>Explore</em> how influx of new cases changes over time.</h4></p>"))),
+                        <p><h4><em style=\"color:blue;\">Explore</em> how influx of new cases changes over time.</h4></p>"))),
     
 
     # Sidebar with a slider input for number of bins

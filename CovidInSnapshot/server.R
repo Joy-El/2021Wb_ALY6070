@@ -24,6 +24,7 @@ world_map$region[world_map$region == "UK"] <- "United Kingdom" # to match covid 
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
+
     output$date <- renderText({
         paste("Data filtered to Showing data from ", 
               as.character(input$snapshot.date - 28), 
