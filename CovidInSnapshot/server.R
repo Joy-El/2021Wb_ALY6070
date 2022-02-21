@@ -40,13 +40,13 @@ shinyServer(function(input, output) {
     #  reported from [num countries] countries
     # ******************************************************************************
     output$globalRate <- renderText({
-        paste(round(global.data$newcase.rate[global.data$newcase.date == input$snapshot.date],5))
+        input$snapshot.date #paste(round(global.data$newcase.rate[global.data$newcase.date == input$snapshot.date],5))
     })
     output$globalRateHelper <- renderText({
-        paste("More new cases compared to last month's weekly average.")
+        paste("More new cases compared to last month's weekly average.", input$snapshot.date)
     })
     output$globalCount <- renderText({
-        paste(global.data$new.cases[global.data$newcase.date == input$snapshot.date])
+        input$snapshot.date #paste(global.data$new.cases[global.data$newcase.date == input$snapshot.date])
     })
     output$globalCountHelper <- renderText({
         countries <- country.data %>%
@@ -56,7 +56,7 @@ shinyServer(function(input, output) {
             dplyr::summarize(count = n()) %>%
             group_by() %>%
             dplyr::summarise(count = n())
-        paste("New Cases reported across ", countries$count, "countries")
+        paste("New Cases reported across ", countries$count, "countries", input$snapshot.date)
     })
      
     # ******************************************************************************
@@ -86,6 +86,7 @@ shinyServer(function(input, output) {
                     axis.ticks = element_blank(),
                     panel.background = element_blank(),
                     legend.position = c(0.15,0.4))
+            + ggtitle(input$snapshot.date)
         )
     }) # end of output$countryNewCaseRatePlot
 

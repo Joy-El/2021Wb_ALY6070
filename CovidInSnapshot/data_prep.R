@@ -43,7 +43,8 @@ raw_minimal <- raw_df[,c("events.confirmed.date",
                          "events.onsetSymptoms.date",
                          "events.outcome.date",
                          "events.outcome.value",
-                         "location.country")]
+                         "location.country",
+                         "location.administrativeAreaLevel1")]
 rm(raw_df) # to free up RAM
 
 #
@@ -115,9 +116,10 @@ raw_minimal$mortality.date[is.na(raw_minimal$cleaned.events.outcome.value) |
 ## Reduce columns to those cleaned and still needed
 raw_cleaned <- raw_minimal[,c("newcase.date",
                               "location.country",
+                              "location.administrativeAreaLevel1",
                               "mortality.date",
                               "cleaned.events.outcome.value")]
-colnames(raw_cleaned) <- c("newcase.date", "country", "mortality.date", "outcome")
+colnames(raw_cleaned) <- c("newcase.date", "country", "region", "mortality.date", "outcome")
 
 rm(raw_minimal, mortalities, other_outcomes)
 
@@ -160,7 +162,7 @@ rm(outcomes, outcome.frequency, countries_with_outcomes)
 #
 ## Remove outcomes and mortality dates for other countries
 raw_cleaned$mortality.date[!(raw_cleaned$country %in% c("Colombia", "China", "Germany"))] <- NA
-raw_cleaned <- raw_cleaned[,c("newcase.date", "country", "mortality.date")]
+raw_cleaned <- raw_cleaned[,c("newcase.date", "country", "region", "mortality.date")]
 
 
 #
@@ -359,6 +361,45 @@ write.csv(global.data,
           row.names = FALSE)
 
 rm(global.data, cleaned)
+
+# ******************************************************************************
+# OUTPUT 3: Region-level summary (Germany & Colombia)
+# ******************************************************************************
+# 1) Region-level Global.health data for Germany & Colombia
+#    - rolled up to day and region 
+#    - limited to 2020 (figure out exact date range based on data quality)
+#    - FIELDS: day, region, new_cases 
+#      - may want cases with outcome listed; or flag countries without any outcome data
+
+# load UN data to get normalization information
+UN_data <- read.csv("../data/SYB63_1_202009_Population.csv", stringsAsFactors = FALSE)
+population <- UN_data %>%
+  dplyr::filter(X.1 == "Population mid-year estimates (millions)", 
+         X == 2020,
+         Population..density.and.surface.area %in% c("Colombia", "Germany")) %>%
+  dplyr::select(country = Population..density.and.surface.area,
+                population.millions = X.2)
+
+population$population <- as.numeric(population$population.millions) * 1000000
+
+germany <- cleaned %>% 
+  dplyr::filter(country == "Germany") %>%
+  dplyr::group_by(newcase.date, region) %>%
+  dplyr::summarise(newcases = n())
+
+germany$cases.per10k <- germany$newcases / population$population[population$country == "Germany"] * 10000
+
+write.csv(germany, file="germany_data.csv", row.names = FALSE)
+
+
+colombia <- cleaned %>% 
+  dplyr::filter(country == "Colombia") %>%
+  dplyr::group_by(newcase.date, region) %>%
+  dplyr::summarise(newcases = n())
+
+colombia$cases.per10k <- colombia$newcases / population$population[population$country == "Colombia"] * 10000
+
+write.csv(colombia, file="colombia_data.csv", row.names = FALSE)
 
 # ******************************************************************************
 # OUTPUT 3: Country Latitude/Longitude Mappings
